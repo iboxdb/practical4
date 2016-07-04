@@ -3,6 +3,7 @@ local create_model = require 'create_model'
 --------------------------------------------------------------
 -- SETTINGS
 local opt = { nonlinearity_type = 'requ' }
+--opt.nonlinearity_type = 'sigmoid'
 
 -- function that numerically checks gradient of the loss:
 -- f is the scalar-valued function
@@ -15,11 +16,16 @@ local function checkgrad(f, g, x, eps)
   -- compute numeric approximations to gradient
   local eps = eps or 1e-7
   local grad_est = torch.DoubleTensor(grad:size())
-  for i = 1, grad:size(1) do
+  for ri = 1, grad:size(1) do
     -- TODO: do something with x[i] and evaluate f twice, and put your estimate of df/dx_i into grad_est[i]
-    x[i] = x[i] + eps
-    ...something(s) here
-    grad_est[i] = ...something here
+    local old_val = x[ri]
+    x[ri] = old_val + eps
+    local cg0 = f(x)
+    x[ri] = old_val - eps
+    local cg1 = f(x)
+    x[ri] = old_val
+    local grad_numerical = (cg0 - cg1) / ( 2 * eps )
+    grad_est[ri] = grad_numerical 
   end
 
   -- computes (symmetric) relative error of gradient
